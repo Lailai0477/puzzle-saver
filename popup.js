@@ -24,7 +24,7 @@ async function saveToSlot(index) {
   const slots = await readSlots();
   slots[index] = {
     savedAt: Date.now(), data: result.data, puzzleId: result.puzzleId,
-    title: result.title, url: tab.url
+    title: result.title, mode: result.mode, url: tab.url
   };
   await chrome.storage.local.set({ [slotsKey]: slots });
   setStatus(`スロット ${index + 1} に保存しました。`);
@@ -32,7 +32,8 @@ async function saveToSlot(index) {
 }
 
 async function loadSlot(slot) {
-  if (!confirm("盤面を保存時点に戻して、解答を再開しますか？")) return;
+  const notice = slot.mode === "edit" ? "編集モードで開きますか？" : "解答モードで開きますか？";
+  if (!confirm(`保存時点の盤面を、${notice}`)) return;
   setStatus("パズルを開いています…");
   if (slot.url === tab.url) {
     const result = await send({ type: "puzzle-saver-restore", data: slot.data });
@@ -78,7 +79,8 @@ async function renderSlots() {
     row.append(info, save);
     if (slot) {
       const load = document.createElement("button");
-      load.textContent = "ロードして解く";
+      load.className = slot.mode === "edit" ? "load-edit" : "load-play";
+      load.textContent = slot.mode === "edit" ? "ロードして編集" : "ロードして解く";
       load.onclick = () => loadSlot(slot);
       row.append(load);
     }

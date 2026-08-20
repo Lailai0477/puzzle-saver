@@ -13,4 +13,6 @@ button { border: 0; border-radius: 6px; cursor: pointer; padding: 9px 12px; font
 .snapshot button { background: #ddd; color: #111; font-size: 12px; padding: 6px 8px; }
 #snapshots { max-height: 390px; overflow-y: auto; }
 .snapshot .save { background: #1769aa; color: white; }
+.snapshot .load-edit { background: #d97706; color: white; }
+.snapshot .load-play { background: #16803c; color: white; }
 .empty { color: #666; font-size: 12px; }

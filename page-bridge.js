@@ -29,7 +29,8 @@
           ok: true,
           data,
           puzzleId: puzzle.pid || "unknown",
-          title: document.title
+          title: document.title,
+          mode: puzzle.editmode ? "edit" : "solve"
         });
         return;
       }
