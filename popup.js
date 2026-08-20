@@ -1,7 +1,13 @@
 const statusEl = document.querySelector("#status");
 const snapshotsEl = document.querySelector("#snapshots");
 const slotsKey = "puzzle-saver:slots";
+const slotsPerPage = 25;
+const slotCount = 50;
+const previousPageButton = document.querySelector("#previous-page");
+const nextPageButton = document.querySelector("#next-page");
+const pageLabel = document.querySelector("#page-label");
 let tab;
+let currentPage = 0;
 
 function setStatus(message) { statusEl.textContent = message; }
 
@@ -10,8 +16,8 @@ function send(message) {
 }
 
 async function readSlots() {
-  const { [slotsKey]: saved = Array(10).fill(null) } = await chrome.storage.local.get(slotsKey);
-  return Array.from({ length: 10 }, (_, index) => saved[index] || null);
+  const { [slotsKey]: saved = Array(slotCount).fill(null) } = await chrome.storage.local.get(slotsKey);
+  return Array.from({ length: slotCount }, (_, index) => saved[index] || null);
 }
 
 async function saveToSlot(index) {
@@ -49,7 +55,9 @@ async function loadSlot(slot) {
 async function renderSlots() {
   const slots = await readSlots();
   snapshotsEl.replaceChildren();
-  slots.forEach((slot, index) => {
+  const firstSlot = currentPage * slotsPerPage;
+  slots.slice(firstSlot, firstSlot + slotsPerPage).forEach((slot, pageIndex) => {
+    const index = firstSlot + pageIndex;
     const row = document.createElement("div");
     row.className = "snapshot";
     const info = document.createElement("div");
@@ -86,7 +94,19 @@ async function renderSlots() {
     }
     snapshotsEl.append(row);
   });
+  pageLabel.textContent = `${firstSlot + 1}〜${firstSlot + slotsPerPage} / ${slotCount}`;
+  previousPageButton.disabled = currentPage === 0;
+  nextPageButton.disabled = currentPage === Math.ceil(slotCount / slotsPerPage) - 1;
 }
+
+previousPageButton.onclick = () => {
+  currentPage -= 1;
+  renderSlots();
+};
+nextPageButton.onclick = () => {
+  currentPage += 1;
+  renderSlots();
+};
 
 (async () => {
   [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
