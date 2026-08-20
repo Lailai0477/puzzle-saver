@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Puzzle Saver",
+  "version": "0.1.0",
+  "description": "Save and restore the current progress of pzpr / puzz.link puzzles.",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "action": {
+    "default_title": "Puzzle Saver",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["page-bridge.js"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ]
+}

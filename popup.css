@@ -1,0 +1,16 @@
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { width: 340px; margin: 0; }
+main { padding: 16px; }
+h1 { font-size: 18px; margin: 0 0 8px; }
+h2 { font-size: 14px; margin: 20px 0 8px; }
+p { font-size: 13px; min-height: 2.5em; margin: 0 0 12px; }
+button { border: 0; border-radius: 6px; cursor: pointer; padding: 9px 12px; font: inherit; }
+.snapshot { align-items: center; border-top: 1px solid #bbb; display: flex; flex-wrap: wrap; gap: 8px; padding: 9px 0; }
+.snapshot-info { flex: 1; min-width: 170px; }
+.snapshot strong, .snapshot time { display: block; font-size: 12px; }
+.snapshot small { color: #666; display: block; font-size: 11px; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.snapshot a { color: #1769aa; display: block; font-size: 10px; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.snapshot button { background: #ddd; color: #111; font-size: 12px; padding: 6px 8px; }
+#snapshots { max-height: 390px; overflow-y: auto; }
+.snapshot .save { background: #1769aa; color: white; }
+.empty { color: #666; font-size: 12px; }
