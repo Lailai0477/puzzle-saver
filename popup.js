@@ -63,7 +63,7 @@ async function renderSlots() {
     const info = document.createElement("div");
     info.className = "snapshot-info";
     const label = document.createElement("strong");
-    label.textContent = `スロット ${index + 1}`;
+    label.textContent = `# ${index + 1}`;
     const details = document.createElement("small");
     if (slot) {
       const time = document.createElement("time");
