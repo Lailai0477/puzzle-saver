@@ -6,10 +6,22 @@ const slotCount = 50;
 const previousPageButton = document.querySelector("#previous-page");
 const nextPageButton = document.querySelector("#next-page");
 const pageLabel = document.querySelector("#page-label");
+const badgeOptions = [
+  ["none", "バッジなし"],
+  ["in-progress", "途中"],
+  ["favorite", "お気に入り"],
+  ["complete", "完成"]
+];
 let tab;
 let currentPage = 0;
 
 function setStatus(message) { statusEl.textContent = message; }
+
+function formatSavedAt(savedAt) {
+  return new Date(savedAt).toLocaleString("ja-JP", {
+    year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"
+  });
+}
 
 function getPuzzLinkUrl(slot) {
   if (slot.puzzLinkUrl) return slot.puzzLinkUrl;
@@ -41,13 +53,24 @@ async function saveToSlot(index) {
     return;
   }
   const slots = await readSlots();
+  const previous = slots[index];
   slots[index] = {
     savedAt: Date.now(), data: result.data, puzzleId: result.puzzleId,
     title: result.title, mode: result.mode, url: tab.url,
-    puzzLinkUrl: result.puzzLinkUrl
+    puzzLinkUrl: result.puzzLinkUrl,
+    badge: previous?.badge || "none"
   };
   await chrome.storage.local.set({ [slotsKey]: slots });
   setStatus(`スロット ${index + 1} に保存しました。`);
+  renderSlots();
+}
+
+async function setBadge(index, badge) {
+  const slots = await readSlots();
+  if (!slots[index]) return;
+  slots[index].badge = badge;
+  await chrome.storage.local.set({ [slotsKey]: slots });
+  setStatus("バッジを変更しました。");
   renderSlots();
 }
 
@@ -86,11 +109,35 @@ async function renderSlots() {
   slots.slice(firstSlot, firstSlot + slotsPerPage).forEach((slot, pageIndex) => {
     const index = firstSlot + pageIndex;
     const row = document.createElement("div");
-    row.className = "snapshot";
+    row.className = slot ? "snapshot" : "snapshot snapshot-empty";
     const info = document.createElement("div");
     info.className = "snapshot-info";
+    const heading = document.createElement("div");
+    heading.className = "snapshot-heading";
     const label = document.createElement("strong");
     label.textContent = `# ${index + 1}`;
+    heading.append(label);
+    if (slot) {
+      const badgeValue = badgeOptions.some(([value]) => value === slot.badge) ? slot.badge : "none";
+      const badge = document.createElement("div");
+      badge.className = "badge-control";
+      const badgeIcon = document.createElement("img");
+      badgeIcon.src = `icons/badges/${badgeValue}.svg`;
+      badgeIcon.alt = "";
+      const badgeSelect = document.createElement("select");
+      badgeSelect.setAttribute("aria-label", `スロット ${index + 1} のバッジ`);
+      badgeSelect.title = "バッジを変更";
+      for (const [value, text] of badgeOptions) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = text;
+        badgeSelect.append(option);
+      }
+      badgeSelect.value = badgeValue;
+      badgeSelect.onchange = () => setBadge(index, badgeSelect.value);
+      badge.append(badgeIcon, badgeSelect);
+      heading.append(badge);
+    }
     const details = document.createElement("small");
     if (slot) {
       const time = document.createElement("time");
@@ -102,34 +149,32 @@ async function renderSlots() {
       url.rel = "noreferrer";
       url.textContent = slot.url;
       url.title = slot.url;
-      info.append(label, time, details, url);
+      info.append(heading, time, details, url);
     } else {
       details.textContent = "空きスロット";
-      info.append(label, details);
+      info.append(heading, details);
     }
     const save = document.createElement("button");
     save.className = "save";
     save.textContent = slot ? "上書き保存" : "保存";
     save.onclick = () => saveToSlot(index);
-    const actions = document.createElement("div");
-    actions.className = "snapshot-actions";
-    actions.append(save);
+    row.append(info);
+    row.append(save);
     if (slot) {
-      const puzzLinkUrl = getPuzzLinkUrl(slot);
       const load = document.createElement("button");
       load.className = slot.mode === "edit" ? "load-edit" : "load-play";
       load.textContent = slot.mode === "edit" ? "ロードして編集" : "ロードして解く";
       load.onclick = () => loadSlot(slot);
-      actions.append(load);
-      if (puzzLinkUrl) {
+      row.append(load);
+      if (getPuzzLinkUrl(slot)) {
         const puzzLink = document.createElement("button");
         puzzLink.className = "load-puzzlink";
         puzzLink.textContent = "puzz.linkで解く";
         puzzLink.onclick = () => loadInPuzzLink(slot);
-        actions.append(puzzLink);
+        row.append(puzzLink);
+        row.classList.add("has-puzzlink");
       }
     }
-    row.append(info, actions);
     snapshotsEl.append(row);
   });
   pageLabel.textContent = `${firstSlot + 1}〜${firstSlot + slotsPerPage} / ${slotCount}`;

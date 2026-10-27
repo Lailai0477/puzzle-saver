@@ -14,10 +14,11 @@
     --paper: #111111;
     --teal: #2dd4bf;
     --muted: #9ca3af;
-
     color-scheme: dark;
   }
 }
+
+* { box-sizing: border-box; }
 
 body {
   width: 350px;
@@ -26,24 +27,21 @@ body {
   color: var(--ink);
 }
 
-main {
-  padding: 14px;
-}
+main { padding: 12px; }
 
 h1 {
-  font-size: 18px;
-  letter-spacing: -.02em;
+  font-size: 17px;
   margin: 0 0 4px;
 }
 
 h2 {
-  font-size: 13px;
-  margin: 17px 0 8px;
+  font-size: 12px;
+  margin: 14px 0 8px;
 }
 
 p {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   margin: 0;
   min-height: 1.4em;
 }
@@ -59,17 +57,16 @@ button {
   font-weight: 700;
   line-height: 1.2;
   padding: 6px 7px;
+  white-space: nowrap;
 }
 
-button:disabled {
-  cursor: default;
-  opacity: .4;
-}
+button:hover:not(:disabled) { border-color: var(--teal); }
+button:disabled { cursor: default; opacity: .5; }
 
 #snapshots {
   display: grid;
-  gap: 5px;
-  max-height: 400px;
+  gap: 7px;
+  max-height: 500px;
   overflow-y: auto;
   padding-right: 3px;
 }
@@ -78,80 +75,75 @@ button:disabled {
   align-items: center;
   background: var(--paper);
   border: 1px solid var(--ink);
-  border-left: 4px solid var(--teal);
-  border-radius: 5px;
+  border-left: 5px solid var(--teal);
+  border-radius: 7px;
   display: grid;
   gap: 6px;
-  grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 52px;
-  padding: 7px 8px;
-  transition: background-color 0.15s ease;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  min-height: 82px;
+  padding: 9px 8px;
 }
 
-.snapshot:hover {
-  background: color-mix(in srgb, var(--paper) 80%, var(--ink));
-}
-
-.snapshot-info {
-  min-width: 0;
-}
-
-.snapshot-actions {
-  display: grid;
-  gap: 4px;
-  justify-items: end;
-}
-
-.snapshot strong {
-  display: block;
-  font-size: 12px;
-}
-
+.snapshot-info { grid-column: 1; min-width: 0; }
+.has-puzzlink .snapshot-info { grid-row: 1 / span 2; }
+.snapshot-heading { align-items: center; display: flex; gap: 6px; }
+.snapshot strong { display: block; font-size: 14px; line-height: 1.2; }
 .snapshot time {
   color: var(--muted);
   display: block;
   font-size: 10px;
-  margin-top: 1px;
+  margin-top: 3px;
+  white-space: nowrap;
 }
-
-.snapshot small {
-  color: var(--ink);
+.snapshot small, .snapshot a {
   display: block;
-  font-size: 10px;
-  margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.snapshot small { color: var(--ink); font-size: 11px; margin-top: 4px; }
+.snapshot a { color: var(--muted); font-size: 10px; margin-top: 3px; }
+.snapshot a:hover { color: var(--teal); }
 
-.snapshot a {
-  color: var(--muted);
-  display: block;
-  font-size: 9px;
-  margin-top: 1px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.badge-control {
+  flex: 0 0 24px;
+  height: 24px;
+  position: relative;
+  width: 24px;
+}
+.badge-control img { display: block; height: 24px; width: 24px; }
+.badge-control select {
+  cursor: pointer;
+  height: 100%;
+  inset: 0;
+  opacity: 0;
+  position: absolute;
+  width: 100%;
+}
+.badge-control:focus-within {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 50%;
 }
 
-.snapshot .save {
-  background: var(--paper);
-}
-
-.snapshot .load-edit {
-  background: var(--ink);
-  color: var(--paper);
-}
-
+.snapshot .save { grid-column: 2; }
+.snapshot .load-play, .snapshot .load-edit { grid-column: 3; }
 .snapshot .load-play {
   background: var(--teal);
   border-color: var(--teal);
   color: var(--paper);
 }
-
+.snapshot .load-edit { background: var(--ink); color: var(--paper); }
 .snapshot .load-puzzlink {
-  border-color: var(--teal);
+  border: 2px solid var(--teal);
   color: var(--teal);
+  grid-column: 2 / 4;
+  grid-row: 2;
+  justify-self: center;
+}
+.snapshot-empty .save {
+  grid-column: 2 / 4;
+  justify-self: end;
 }
 
 #pagination {
@@ -161,17 +153,5 @@ button:disabled {
   justify-content: space-between;
   margin-top: 11px;
 }
-
-#pagination button {
-  font-size: 10px;
-}
-
-#page-label {
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.empty {
-  color: var(--muted);
-  font-size: 12px;
-}
+#pagination button { font-size: 10px; }
+#page-label { color: var(--muted); font-size: 11px; }
