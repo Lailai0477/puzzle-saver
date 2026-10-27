@@ -14,6 +14,16 @@
     }));
   }
 
+  function puzzLinkUrl(puzzle) {
+    try {
+      const sourceUrl = new URL(puzzle.getURL(), location.href);
+      const puzzleQuery = sourceUrl.search.slice(1);
+      return puzzleQuery ? `https://puzz.link/p?${puzzleQuery}` : null;
+    } catch (_error) {
+      return null;
+    }
+  }
+
   function runRequest(requestId, action, attempts = 0) {
     const puzzle = activePuzzle();
     if ((!puzzle || !window.pzpr?.parser) && attempts < 25) {
@@ -33,7 +43,8 @@
           data,
           puzzleId: puzzle.pid || "unknown",
           title: document.title,
-          mode: puzzle.editmode ? "edit" : "solve"
+          mode: puzzle.editmode ? "edit" : "solve",
+          puzzLinkUrl: puzzLinkUrl(puzzle)
         });
         return;
       }

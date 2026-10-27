@@ -82,7 +82,7 @@ button:disabled {
   border-radius: 5px;
   display: grid;
   gap: 6px;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   min-height: 52px;
   padding: 7px 8px;
   transition: background-color 0.15s ease;
@@ -94,6 +94,12 @@ button:disabled {
 
 .snapshot-info {
   min-width: 0;
+}
+
+.snapshot-actions {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
 }
 
 .snapshot strong {
@@ -141,6 +147,11 @@ button:disabled {
   background: var(--teal);
   border-color: var(--teal);
   color: var(--paper);
+}
+
+.snapshot .load-puzzlink {
+  border-color: var(--teal);
+  color: var(--teal);
 }
 
 #pagination {

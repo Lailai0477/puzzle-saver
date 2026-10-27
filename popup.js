@@ -11,6 +11,19 @@ let currentPage = 0;
 
 function setStatus(message) { statusEl.textContent = message; }
 
+function getPuzzLinkUrl(slot) {
+  if (slot.puzzLinkUrl) return slot.puzzLinkUrl;
+  try {
+    const sourceUrl = new URL(slot.url);
+    const puzzleQuery = sourceUrl.search.slice(1);
+    return sourceUrl.hostname === "pzv.jp" && puzzleQuery
+      ? `https://puzz.link/p?${puzzleQuery}`
+      : null;
+  } catch (_error) {
+    return null;
+  }
+}
+
 function send(message) {
   return new Promise((resolve) => chrome.tabs.sendMessage(tab.id, message, resolve));
 }
@@ -30,7 +43,8 @@ async function saveToSlot(index) {
   const slots = await readSlots();
   slots[index] = {
     savedAt: Date.now(), data: result.data, puzzleId: result.puzzleId,
-    title: result.title, mode: result.mode, url: tab.url
+    title: result.title, mode: result.mode, url: tab.url,
+    puzzLinkUrl: result.puzzLinkUrl
   };
   await chrome.storage.local.set({ [slotsKey]: slots });
   setStatus(`スロット ${index + 1} に保存しました。`);
@@ -50,6 +64,19 @@ async function loadSlot(slot) {
     type: "puzzle-saver-load", tabId: tab.id, url: slot.url, data: slot.data
   });
   if (!result?.ok) setStatus(result?.error || "ページを開けませんでした。");
+}
+
+async function loadInPuzzLink(slot) {
+  const puzzLinkUrl = getPuzzLinkUrl(slot);
+  if (!puzzLinkUrl) {
+    setStatus("このパズルはpuzz.link形式のURLに変換できませんでした。");
+    return;
+  }
+  setStatus("puzz.linkでパズルを開いています…");
+  const result = await chrome.runtime.sendMessage({
+    type: "puzzle-saver-load", url: puzzLinkUrl, data: slot.data
+  });
+  if (!result?.ok) setStatus(result?.error || "puzz.linkを開けませんでした。");
 }
 
 async function renderSlots() {
@@ -84,14 +111,25 @@ async function renderSlots() {
     save.className = "save";
     save.textContent = slot ? "上書き保存" : "保存";
     save.onclick = () => saveToSlot(index);
-    row.append(info, save);
+    const actions = document.createElement("div");
+    actions.className = "snapshot-actions";
+    actions.append(save);
     if (slot) {
+      const puzzLinkUrl = getPuzzLinkUrl(slot);
       const load = document.createElement("button");
       load.className = slot.mode === "edit" ? "load-edit" : "load-play";
       load.textContent = slot.mode === "edit" ? "ロードして編集" : "ロードして解く";
       load.onclick = () => loadSlot(slot);
-      row.append(load);
+      actions.append(load);
+      if (puzzLinkUrl) {
+        const puzzLink = document.createElement("button");
+        puzzLink.className = "load-puzzlink";
+        puzzLink.textContent = "puzz.linkで解く";
+        puzzLink.onclick = () => loadInPuzzLink(slot);
+        actions.append(puzzLink);
+      }
     }
+    row.append(info, actions);
     snapshotsEl.append(row);
   });
   pageLabel.textContent = `${firstSlot + 1}〜${firstSlot + slotsPerPage} / ${slotCount}`;
