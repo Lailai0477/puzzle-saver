@@ -3,9 +3,9 @@
   const responseEvent = "puzzle-saver-response";
 
   function activePuzzle() {
-    // puzz.link uses ui.puzzle; keeping the fallback supports pages that
-    // create a Puzzle instance without the standard pzpr-ui wrapper.
-    return window.ui?.puzzle || window.puzzle || null;
+    // puzz.link and the standalone pzprv3 player use ui.puzzle. The latter
+    // fallback supports pages that create a Puzzle instance directly.
+    return window.ui?.puzzle || window.pzpr?.ui?.puzzle || window.puzzle || null;
   }
 
   function respond(requestId, result) {
@@ -14,9 +14,12 @@
     }));
   }
 
-  document.addEventListener(requestEvent, (event) => {
-    const { requestId, action } = event.detail || {};
+  function runRequest(requestId, action, attempts = 0) {
     const puzzle = activePuzzle();
+    if ((!puzzle || !window.pzpr?.parser) && attempts < 25) {
+      setTimeout(() => runRequest(requestId, action, attempts + 1), 200);
+      return;
+    }
     if (!puzzle || !window.pzpr?.parser) {
       respond(requestId, { ok: false, error: "pzpr のパズルを検出できませんでした。" });
       return;
@@ -44,5 +47,10 @@
     } catch (error) {
       respond(requestId, { ok: false, error: error.message || "保存に失敗しました。" });
     }
+  }
+
+  document.addEventListener(requestEvent, (event) => {
+    const { requestId, action } = event.detail || {};
+    runRequest(requestId, action);
   });
 })();

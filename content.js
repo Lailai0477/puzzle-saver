@@ -4,6 +4,11 @@
   const frameRequestType = "puzzle-saver-frame-request";
   const frameResponseType = "puzzle-saver-frame-response";
 
+  function createRequestId() {
+    if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+
   // Content scripts run in an isolated world. The bridge runs in the page's
   // world, where puzz.link exposes `pzpr` and its active Puzzle instance.
   const bridge = document.createElement("script");
@@ -36,11 +41,11 @@
 
   function askPage(action) {
     return new Promise((resolve) => {
-      const requestId = crypto.randomUUID();
+      const requestId = createRequestId();
       const timeout = setTimeout(() => {
         document.removeEventListener(responseEvent, onResponse);
         resolve({ ok: false, error: "このページには対応するパズルが見つかりません。" });
-      }, 1200);
+      }, 6000);
 
       function onResponse(event) {
         if (event.detail?.requestId !== requestId) return;
@@ -61,7 +66,7 @@
     if (window.top !== window) return askPage(action);
 
     return new Promise((resolve) => {
-      const requestId = crypto.randomUUID();
+      const requestId = createRequestId();
       let done = false;
       const finish = (result) => {
         if (done) return;
@@ -72,7 +77,7 @@
       };
       const timeout = setTimeout(() => {
         finish({ ok: false, error: "このページには対応するパズルが見つかりません。" });
-      }, 1500);
+      }, 6500);
       const onFrameResponse = (event) => {
         const message = event.data;
         if (message?.type === frameResponseType && message.requestId === requestId && message.result?.ok) {
